@@ -1,0 +1,8 @@
+{
+  "name": "Multi PCMus Lo-Fi: El Clásico del Mus Español",
+  "description": "Clon nostálgico del mítico PCMus. Juega al mus en un acogedor bar con estética lo-fi, personajes castizos como el Cura, el Guardia Civil o el Tuno, entre otros, y jazz relajante.",
+  "requestFramePermissions": [],
+  "majorCapabilities": [
+    "MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"
+  ]
+}
