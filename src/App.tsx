@@ -176,9 +176,12 @@ export default function App() {
     void ttsEngine.pregenerateForCharacters(ids);
   }, [activeSeatAvatarKey, mp.gameView, partnerId, oppLeftId, oppRightId]);
 
-  // Si el usuario pulsó "Jugar Solo Rápido" mientras el socket conectaba, lo lanza en cuanto esté listo
+  // Si el usuario pulsó "Jugar Solo Rápido" mientras el socket conectaba o resolvía modo local, lo lanza en cuanto esté listo
   useEffect(() => {
-    if (mp.connectionStatus === 'connected' && pendingQuickSoloRef.current) {
+    if (
+      (mp.connectionStatus === 'connected' || mp.connectionStatus === 'local') &&
+      pendingQuickSoloRef.current
+    ) {
       pendingQuickSoloRef.current = false;
       mp.createRoom({
         visibility: 'private',

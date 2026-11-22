@@ -51,7 +51,28 @@ async function startServer() {
   const app = express();
   app.use(express.json({ limit: '1mb' }));
 
+  const allowedOrigin = process.env.ALLOWED_ORIGIN?.trim() || '*';
+  app.use('/api', (req, res, next) => {
+    res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,POST,OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    if (req.method === 'OPTIONS') {
+      res.status(204).end();
+      return;
+    }
+    next();
+  });
+
   const roomManager = new RoomManager();
+
+  app.get('/api/health', (_req, res) => {
+    res.json({
+      ok: true,
+      runtime: 'node-ws',
+      websocketSupported: true,
+      rooms: roomManager.getPublicRoomSummaries().length,
+    });
+  });
 
   app.get('/api/rooms', (_req, res) => {
     res.json({ rooms: roomManager.getPublicRoomSummaries() });
@@ -154,13 +175,19 @@ async function startServer() {
     });
     app.use(vite.middlewares);
   } else {
-    const distDir = path.resolve(__dirname, 'dist');
+    const distDir = path.resolve(process.cwd(), 'dist');
+    const indexHtmlPath = path.join(distDir, 'index.html');
     app.use(express.static(distDir));
     app.use('/voices', (_req, res) => {
       res.status(404).end();
     });
-    app.get('*', (_req, res) => {
-      res.sendFile(path.join(distDir, 'index.html'));
+    app.get('*', async (_req, res) => {
+      try {
+        await fs.access(indexHtmlPath);
+        res.sendFile(indexHtmlPath);
+      } catch {
+        res.status(200).json({ ok: true, service: 'pcmus-ws', wsPath: '/ws' });
+      }
     });
   }
 

@@ -43,6 +43,8 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
   const selectedChar = CHARACTERS[selectedAvatar] || CHARACTERS.cura;
   const isConnected = connectionStatus === 'connected';
+  const isLocalOnly = connectionStatus === 'local';
+  const canCreateRoom = isConnected || isLocalOnly;
 
   const commitProfile = (nextName: string, nextAvatar: string) => {
     const clean = nextName.trim().slice(0, 20) || 'Parroquiano';
@@ -96,11 +98,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
         <div className="flex items-center gap-2 shrink-0">
           <span
             className={`inline-block w-2 h-2 rounded-full ${
-              isConnected ? 'bg-emerald-400' : 'bg-amber-400 animate-pulse'
+              isConnected
+                ? 'bg-emerald-400'
+                : isLocalOnly
+                ? 'bg-sky-400'
+                : 'bg-amber-400 animate-pulse'
             }`}
           />
           <span className="text-xs font-semibold text-stone-300 whitespace-nowrap hidden sm:inline">
-            {isConnected ? 'Taberna conectada' : 'Conectando...'}
+            {isConnected
+              ? 'Taberna online'
+              : isLocalOnly
+              ? 'Modo Solo IA (sin WS)'
+              : 'Conectando...'}
           </span>
         </div>
       </header>
@@ -234,15 +244,15 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
               </div>
               <button
                 type="button"
-                disabled={!isConnected}
+                disabled={!canCreateRoom}
                 onClick={() => handleCreate(false)}
                 className="w-full min-h-[44px] rounded-xl bg-gradient-to-r from-amber-500 via-amber-400 to-amber-500 hover:from-amber-400 hover:to-amber-300 disabled:opacity-50 text-stone-950 font-black text-xs uppercase tracking-wider cursor-pointer active:scale-[0.98] transition-transform whitespace-nowrap"
               >
-                Crear Mesa en Sala de Espera
+                {isLocalOnly ? 'Configurar Mesa con Bots IA' : 'Crear Mesa en Sala de Espera'}
               </button>
               <button
                 type="button"
-                disabled={!isConnected}
+                disabled={!canCreateRoom}
                 onClick={() => handleCreate(true)}
                 className="w-full min-h-[38px] rounded-xl bg-stone-800 hover:bg-stone-700 disabled:opacity-50 border border-stone-700 text-stone-200 font-bold text-xs cursor-pointer whitespace-nowrap"
               >
@@ -292,7 +302,19 @@ export const LobbyScreen: React.FC<LobbyScreenProps> = ({
 
             {/* Open Public Rooms List */}
             <div className="flex-1 space-y-2.5">
-              {rooms.length === 0 ? (
+              {isLocalOnly ? (
+                <div className="border border-dashed border-sky-700/60 rounded-2xl p-6 text-center bg-sky-950/20 space-y-2">
+                  <p className="text-sm font-bold text-sky-200 font-serif-vintage">
+                    Despliegue Serverless (Modo Local Activo)
+                  </p>
+                  <p className="text-xs text-stone-300 max-w-md mx-auto leading-relaxed">
+                    Puedes configurar tu nombre, avatar y bots de IA y jugar partidas completas al instante en el navegador.
+                  </p>
+                  <p className="text-[11px] text-stone-400 max-w-md mx-auto leading-relaxed">
+                    Para habilitar mesas en red entre varios dispositivos en Vercel, despliega el servidor WebSocket incluido y añade la variable <code className="text-amber-300 font-mono">VITE_WS_URL</code> en Vercel.
+                  </p>
+                </div>
+              ) : rooms.length === 0 ? (
                 <div className="border border-dashed border-stone-800 rounded-2xl p-8 text-center bg-stone-950/40">
                   <p className="text-sm font-bold text-stone-300 font-serif-vintage">
                     No hay otras mesas públicas esperando jugadores ahora mismo.
